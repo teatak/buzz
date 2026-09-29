@@ -64,6 +64,7 @@ type OpenAIResponseTextFormat struct {
 
 type OpenAIResponseInputItem struct {
 	Type             string                     `json:"type,omitempty"`
+	Format           string                     `json:"format,omitempty"`
 	Role             string                     `json:"role,omitempty"`
 	Content          json.RawMessage            `json:"content,omitempty"`
 	Summary          []OpenAIResponseOutputPart `json:"summary,omitempty"`

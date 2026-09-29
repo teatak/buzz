@@ -644,6 +644,7 @@ func TestOpenAIResponsesRoutesToOpenAICompatible(t *testing.T) {
 		"input":[
 			{
 				"type":"reasoning",
+				"format":"openai-responses-v1",
 				"id":"rs_previous",
 				"status":"completed",
 				"summary":[{"type":"summary_text","text":"previous reasoning"}],
