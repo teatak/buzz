@@ -3,17 +3,22 @@ package buzzhive
 import (
 	"encoding/json"
 	"io"
+	"math/big"
 	"slices"
+	"strconv"
 	"strings"
 )
 
 // ModelMetadata is a draft imported into the model configuration when a route is
 // saved. Omitted capabilities are unknown; false is an explicit upstream value.
 type ModelMetadata struct {
-	ContextWindow   int64           `json:"context_window,omitempty"`
-	MaxInputTokens  int64           `json:"max_input_tokens,omitempty"`
-	MaxOutputTokens int64           `json:"max_output_tokens,omitempty"`
-	Capabilities    map[string]bool `json:"capabilities,omitempty"`
+	ContextWindow          int64           `json:"context_window,omitempty"`
+	MaxInputTokens         int64           `json:"max_input_tokens,omitempty"`
+	MaxOutputTokens        int64           `json:"max_output_tokens,omitempty"`
+	QuotaUncachedInputRate *float64        `json:"quota_uncached_input_rate,omitempty"`
+	QuotaCachedInputRate   *float64        `json:"quota_cached_input_rate,omitempty"`
+	QuotaOutputRate        *float64        `json:"quota_output_rate,omitempty"`
+	Capabilities           map[string]bool `json:"capabilities,omitempty"`
 }
 
 type upstreamModel struct {
@@ -32,6 +37,61 @@ type modelTopProvider struct {
 	MaxCompletionTokens int64 `json:"max_completion_tokens,omitempty"`
 }
 
+type ModelPricing struct {
+	Prompt         string `json:"prompt"`
+	Completion     string `json:"completion"`
+	InputCacheRead string `json:"input_cache_read,omitempty"`
+}
+
+func (p *ModelPricing) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Prompt         any `json:"prompt"`
+		Completion     any `json:"completion"`
+		InputCacheRead any `json:"input_cache_read"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	p.Prompt = anyPriceToString(raw.Prompt)
+	p.Completion = anyPriceToString(raw.Completion)
+	p.InputCacheRead = anyPriceToString(raw.InputCacheRead)
+	return nil
+}
+
+func anyPriceToString(v any) string {
+	switch val := v.(type) {
+	case string:
+		return val
+	case float64:
+		return strconv.FormatFloat(val, 'f', -1, 64)
+	case int64:
+		return strconv.FormatInt(val, 10)
+	default:
+		return ""
+	}
+}
+
+func parseTokenPriceToRate(priceStr string) (*float64, bool) {
+	priceStr = strings.TrimSpace(priceStr)
+	if priceStr == "" {
+		return nil, false
+	}
+	rat := new(big.Rat)
+	if _, ok := rat.SetString(priceStr); !ok {
+		return nil, false
+	}
+	if rat.Sign() < 0 {
+		return nil, false
+	}
+	multiplier := new(big.Rat).SetInt64(1_000_000_000)
+	rat.Mul(rat, multiplier)
+	val, err := strconv.ParseFloat(rat.FloatString(6), 64)
+	if err != nil {
+		return nil, false
+	}
+	return &val, true
+}
+
 // OpenRouter's discovery fields are also used by BuzzHive's public directory.
 type catalogModel struct {
 	ID                  string             `json:"id"`
@@ -39,6 +99,7 @@ type catalogModel struct {
 	Description         string             `json:"description,omitempty"`
 	ContextLength       int64              `json:"context_length,omitempty"`
 	CostMultiplier      *float64           `json:"cost_multiplier,omitempty"`
+	Pricing             *ModelPricing      `json:"pricing,omitempty"`
 	Architecture        *modelArchitecture `json:"architecture,omitempty"`
 	SupportedParameters *[]string          `json:"supported_parameters,omitempty"`
 	TopProvider         *modelTopProvider  `json:"top_provider,omitempty"`
@@ -113,6 +174,17 @@ func decodeUpstreamModels(body io.Reader, protocol string) ([]upstreamModel, err
 					candidate.Capabilities["tools"] = slices.Contains(*m.SupportedParameters, "tools")
 					candidate.Capabilities["reasoning"] = slices.Contains(*m.SupportedParameters, "reasoning")
 					candidate.Capabilities["json_schema"] = slices.Contains(*m.SupportedParameters, "structured_outputs")
+				}
+				if m.Pricing != nil {
+					if rate, ok := parseTokenPriceToRate(m.Pricing.Prompt); ok {
+						candidate.QuotaUncachedInputRate = rate
+					}
+					if rate, ok := parseTokenPriceToRate(m.Pricing.Completion); ok {
+						candidate.QuotaOutputRate = rate
+					}
+					if rate, ok := parseTokenPriceToRate(m.Pricing.InputCacheRead); ok {
+						candidate.QuotaCachedInputRate = rate
+					}
 				}
 			}
 			models = append(models, candidate)

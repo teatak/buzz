@@ -477,6 +477,11 @@ func (s *Store) SaveModelRoute(route ModelRoute, metadata *ModelMetadata) (Model
 		if metadata.ContextWindow < 0 || metadata.MaxInputTokens < 0 || metadata.MaxOutputTokens < 0 {
 			return ModelRoute{}, errors.New("model token limits must be non-negative")
 		}
+		if (metadata.QuotaUncachedInputRate != nil && *metadata.QuotaUncachedInputRate < 0) ||
+			(metadata.QuotaCachedInputRate != nil && *metadata.QuotaCachedInputRate < 0) ||
+			(metadata.QuotaOutputRate != nil && *metadata.QuotaOutputRate < 0) {
+			return ModelRoute{}, errors.New("model quota rates must be non-negative")
+		}
 		for key := range metadata.Capabilities {
 			switch key {
 			case "stream", "vision", "audio_input", "tools", "reasoning", "json_schema":
@@ -496,8 +501,13 @@ func (s *Store) SaveModelRoute(route ModelRoute, metadata *ModelMetadata) (Model
 		return ModelRoute{}, err
 	}
 	defer tx.Rollback()
-	var currentCaps string
-	if err := tx.QueryRow(s.rebind(`SELECT capabilities FROM models WHERE id = ? FOR UPDATE`), route.ModelID).Scan(&currentCaps); err != nil {
+	var (
+		currentCaps     string
+		currentUncached float64
+		currentCached   float64
+		currentOutput   float64
+	)
+	if err := tx.QueryRow(s.rebind(`SELECT capabilities, quota_uncached_input_rate, quota_cached_input_rate, quota_output_rate FROM models WHERE id = ? FOR UPDATE`), route.ModelID).Scan(&currentCaps, &currentUncached, &currentCached, &currentOutput); err != nil {
 		return ModelRoute{}, err
 	}
 	now := storeNow()
@@ -519,18 +529,39 @@ func (s *Store) SaveModelRoute(route ModelRoute, metadata *ModelMetadata) (Model
 	}
 	if metadata != nil {
 		// Merge only supplied facts. False values overwrite true; unknown values do
-		// not clear saved settings. Identity, billing and selection policy stay local.
+		// not clear saved settings. Identity and selection policy stay local.
 		caps := savedModelCapabilities(currentCaps)
 		for key, value := range metadata.Capabilities {
 			caps[key] = value
 		}
 		encoded, _ := json.Marshal(caps)
+
+		uncachedRate := currentUncached
+		if metadata.QuotaUncachedInputRate != nil {
+			uncachedRate = *metadata.QuotaUncachedInputRate
+		}
+		cachedRate := currentCached
+		if metadata.QuotaCachedInputRate != nil {
+			cachedRate = *metadata.QuotaCachedInputRate
+		}
+		outputRate := currentOutput
+		if metadata.QuotaOutputRate != nil {
+			outputRate = *metadata.QuotaOutputRate
+		}
+
 		_, err = tx.Exec(s.rebind(`UPDATE models SET
    context_window = CASE WHEN ? > 0 THEN ? ELSE context_window END,
    max_input_tokens = CASE WHEN ? > 0 THEN ? ELSE max_input_tokens END,
    max_output_tokens = CASE WHEN ? > 0 THEN ? ELSE max_output_tokens END,
+   quota_uncached_input_rate = ?,
+   quota_cached_input_rate = ?,
+   quota_output_rate = ?,
    capabilities = ?, updated_at = ? WHERE id = ?`),
-			metadata.ContextWindow, metadata.ContextWindow, metadata.MaxInputTokens, metadata.MaxInputTokens, metadata.MaxOutputTokens, metadata.MaxOutputTokens, string(encoded), now, route.ModelID)
+			metadata.ContextWindow, metadata.ContextWindow,
+			metadata.MaxInputTokens, metadata.MaxInputTokens,
+			metadata.MaxOutputTokens, metadata.MaxOutputTokens,
+			uncachedRate, cachedRate, outputRate,
+			string(encoded), now, route.ModelID)
 		if err != nil {
 			return ModelRoute{}, err
 		}

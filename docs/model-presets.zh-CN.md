@@ -56,6 +56,8 @@
     "id": "my-model", "object": "model", "created": 0, "owned_by": "buzzhive",
     "name": "My Model", "description": "Saved description",
     "context_length": 65536,
+    "cost_multiplier": 1.0,
+    "pricing": {"prompt": "0.000001", "completion": "0.000002", "input_cache_read": "0.0000001"},
     "architecture": {"input_modalities": ["text", "image"], "output_modalities": ["text"]},
     "supported_parameters": ["tools", "tool_choice", "reasoning"],
     "top_provider": {"context_length": 65536, "max_completion_tokens": 8192}
@@ -65,4 +67,4 @@
 
 目录只展示启用模型，以数据库保存的模型配置为唯一来源，不在请求时读取上游、选取某条路由或重算预设。零/未知限额省略；`vision/audio_input` 中至少一项已配置时输出输入模态列表，`tools/reasoning/json_schema` 中至少一项已配置时输出能力对应的参数列表。列表只声明已配置为启用的能力，未配置项不宣称支持；整组均未知时省略对应字段。已配置的参数能力均关闭时返回 `[]`，例如 `{"vision":true,"tools":false}` 会输出 `["text","image"]` 和空参数列表。输出模态为当前文本生成网关的 `text`。`supported_parameters` 发布已配置能力对应的参数，不宣称覆盖上游所有采样参数。
 
-这些是 [OpenRouter 模型元数据字段](https://openrouter.ai/docs/api/api-reference/models/list-all-models-and-their-properties) 的适配，不是完整 OpenRouter 服务协议。不虚构 tokenizer、审核状态或美元定价，内部 Credits 费率不作为 OpenRouter 的 USD/token `pricing` 输出。Pudding 已支持这些公开字段，不需要新增客户端协议分支。
+这些是 [OpenRouter 模型元数据字段](https://openrouter.ai/docs/api/api-reference/models/list-all-models-and-their-properties) 的适配，依据 1,000 Credits = $1.00 USD 基准，通过内部 Credits 积分反算为每 Token 美元价格输出至 `pricing` 对象（`prompt`、`completion`、`input_cache_read`），并同时保留归一化综合倍率 `cost_multiplier`。Pudding 与标准客户端均可直接识别与使用。

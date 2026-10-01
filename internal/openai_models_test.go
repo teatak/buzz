@@ -14,7 +14,7 @@ func TestPublicModelMetadataKeepsUnknownFieldsAbsent(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, field := range []string{"context_length", "max_input_tokens", "max_output_tokens", "capabilities", "architecture", "supported_parameters", "top_provider", "pricing"} {
+		for _, field := range []string{"context_length", "max_input_tokens", "max_output_tokens", "capabilities", "architecture", "supported_parameters", "top_provider"} {
 			if strings.Contains(string(b), field) {
 				t.Fatalf("invented %s in %s", field, b)
 			}
@@ -91,9 +91,10 @@ func TestPublicModelMetadataPartialCapabilities(t *testing.T) {
 
 func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 	cases := []struct {
-		name     string
-		model    Model
-		wantMult *float64
+		name        string
+		model       Model
+		wantMult    *float64
+		wantPricing *ModelPricing
 	}{
 		{
 			name: "deepseek 0.08x",
@@ -104,6 +105,11 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 				QuotaOutputRate:        280,
 			},
 			wantMult: float64Ptr(0.08),
+			wantPricing: &ModelPricing{
+				Prompt:         "0.00000014",
+				Completion:     "0.00000028",
+				InputCacheRead: "0.000000003",
+			},
 		},
 		{
 			name: "flagship 3.2x",
@@ -114,6 +120,11 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 				QuotaOutputRate:        10000,
 			},
 			wantMult: float64Ptr(3.2),
+			wantPricing: &ModelPricing{
+				Prompt:         "0.0000025",
+				Completion:     "0.00001",
+				InputCacheRead: "0.00000125",
+			},
 		},
 		{
 			name: "zero rate 0x",
@@ -121,6 +132,11 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 				Name: "free",
 			},
 			wantMult: float64Ptr(0),
+			wantPricing: &ModelPricing{
+				Prompt:         "0",
+				Completion:     "0",
+				InputCacheRead: "0",
+			},
 		},
 		{
 			name: "micro non-zero rate clamps to 0.01",
@@ -129,6 +145,11 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 				QuotaUncachedInputRate: 5,
 			},
 			wantMult: float64Ptr(0.01),
+			wantPricing: &ModelPricing{
+				Prompt:         "0.000000005",
+				Completion:     "0",
+				InputCacheRead: "0",
+			},
 		},
 		{
 			name: "negative rate omitted",
@@ -136,7 +157,8 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 				Name:                   "invalid",
 				QuotaUncachedInputRate: -1,
 			},
-			wantMult: nil,
+			wantMult:    nil,
+			wantPricing: nil,
 		},
 	}
 
@@ -153,6 +175,16 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 				}
 			}
 
+			if tc.wantPricing == nil {
+				if m.Pricing != nil {
+					t.Fatalf("Pricing = %+v, want nil", m.Pricing)
+				}
+			} else {
+				if m.Pricing == nil || *m.Pricing != *tc.wantPricing {
+					t.Fatalf("Pricing = %+v, want %+v", m.Pricing, tc.wantPricing)
+				}
+			}
+
 			b, err := json.Marshal(m)
 			if err != nil {
 				t.Fatal(err)
@@ -164,6 +196,16 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 			} else {
 				if strings.Contains(string(b), `"cost_multiplier"`) {
 					t.Fatalf("cost_multiplier should be omitted: %s", string(b))
+				}
+			}
+
+			if tc.wantPricing != nil {
+				if !strings.Contains(string(b), `"pricing":`) {
+					t.Fatalf("pricing missing in json: %s", string(b))
+				}
+			} else {
+				if strings.Contains(string(b), `"pricing"`) {
+					t.Fatalf("pricing should be omitted: %s", string(b))
 				}
 			}
 		})

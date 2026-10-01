@@ -2,6 +2,7 @@ package buzzhive
 
 import (
 	"math"
+	"math/big"
 	"net/http"
 	"strings"
 	"time"
@@ -44,7 +45,8 @@ func (s *Server) handleOpenAIModels(w http.ResponseWriter, r *http.Request, _ Au
 }
 
 // Public metadata comes solely from the saved model configuration. Catalog
-// fields follow OpenRouter; Credits rates are not advertised as USD pricing.
+// fields follow OpenRouter. Pricing is calculated from Credits (1,000 Credits = $1.00 USD),
+// while cost_multiplier provides a normalized composite multiplier for clients.
 func publicModelMetadata(model Model) openAIModelObject {
 	m := openAIModelObject{catalogModel: catalogModel{
 		ID: model.Name, Name: strings.TrimSpace(model.DisplayName), Description: strings.TrimSpace(model.Description),
@@ -88,6 +90,7 @@ func publicModelMetadata(model Model) openAIModelObject {
 		m.SupportedParameters = &parameters
 	}
 	m.CostMultiplier = calculateCostMultiplier(model)
+	m.Pricing = calculatePricing(model)
 	return m
 }
 
@@ -111,4 +114,39 @@ func calculateCostMultiplier(model Model) *float64 {
 		val = math.Round(raw*10) / 10
 	}
 	return &val
+}
+
+func calculatePricing(model Model) *ModelPricing {
+	if model.QuotaUncachedInputRate < 0 || model.QuotaOutputRate < 0 || model.QuotaCachedInputRate < 0 {
+		return nil
+	}
+	return &ModelPricing{
+		Prompt:         formatTokenPrice(model.QuotaUncachedInputRate),
+		Completion:     formatTokenPrice(model.QuotaOutputRate),
+		InputCacheRead: formatTokenPrice(model.QuotaCachedInputRate),
+	}
+}
+
+func formatTokenPrice(credits float64) string {
+	if credits <= 0 || math.IsNaN(credits) || math.IsInf(credits, 0) {
+		return "0"
+	}
+	// 换算基准：1,000 Credits = $1.00 USD。
+	// credits (Credits / 1M tokens) 换算为 USD / token:
+	// USD / token = credits / 1,000 / 1,000,000 = credits / 1e9。
+	rat := new(big.Rat).SetFloat64(credits)
+	if rat == nil {
+		return "0"
+	}
+	divisor := big.NewRat(1000000000, 1)
+	res := new(big.Rat).Quo(rat, divisor)
+	str := res.FloatString(12)
+	if strings.Contains(str, ".") {
+		str = strings.TrimRight(str, "0")
+		str = strings.TrimRight(str, ".")
+		if str == "" || str == "-0" {
+			str = "0"
+		}
+	}
+	return str
 }

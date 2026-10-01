@@ -115,7 +115,16 @@ export function ModelsPage(props: ModelsPageProps) {
   }, [props.modelRoutes]);
   const selectedPresets = props.modelPresets.filter((preset) => presetIDs.includes(preset.id));
   const selectedPresetCount = selectedPresets.length;
-  const hasUpstreamMetadata = Boolean(selectedUpstream && (selectedUpstream.context_window || selectedUpstream.max_output_tokens || selectedUpstream.max_input_tokens || Object.keys(selectedUpstream.capabilities ?? {}).length));
+  const hasUpstreamMetadata = Boolean(
+    selectedUpstream &&
+      (selectedUpstream.context_window ||
+        selectedUpstream.max_output_tokens ||
+        selectedUpstream.max_input_tokens ||
+        selectedUpstream.quota_uncached_input_rate !== undefined ||
+        selectedUpstream.quota_cached_input_rate !== undefined ||
+        selectedUpstream.quota_output_rate !== undefined ||
+        Object.keys(selectedUpstream.capabilities ?? {}).length),
+  );
   const selectedRouteModel = props.models.find((model) => model.id === routeForm.model_id);
   const selectedRouteProvider = props.providers.find((provider) => provider.id === routeForm.provider_id);
   const selectedRouteEndpoints = selectedRouteProvider?.endpoints ?? [];
@@ -240,6 +249,9 @@ export function ModelsPage(props: ModelsPageProps) {
       context_window: selectedUpstream.context_window,
       max_input_tokens: selectedUpstream.max_input_tokens,
       max_output_tokens: selectedUpstream.max_output_tokens,
+      quota_uncached_input_rate: selectedUpstream.quota_uncached_input_rate,
+      quota_cached_input_rate: selectedUpstream.quota_cached_input_rate,
+      quota_output_rate: selectedUpstream.quota_output_rate,
       capabilities: selectedUpstream.capabilities,
     } : undefined;
     if (await save("/admin/api/model-routes", { ...routeForm, model_metadata }, routeForm.id ? "PUT" : "POST")) {
@@ -624,6 +636,15 @@ export function ModelsPage(props: ModelsPageProps) {
                   {!!selectedUpstream.context_window && <ModelStat label={t("models.context_window")} value={formatModelNumber(selectedUpstream.context_window)} />}
                   {!!selectedUpstream.max_output_tokens && <ModelStat label={t("models.max_output_tokens")} value={formatModelNumber(selectedUpstream.max_output_tokens)} />}
                   {!!selectedUpstream.max_input_tokens && <ModelStat label={t("models.max_input_tokens")} value={formatModelNumber(selectedUpstream.max_input_tokens)} />}
+                  {selectedUpstream.quota_uncached_input_rate !== undefined && (
+                    <ModelStat label={t("models.quota_uncached_input_rate")} value={formatQuotaRateWithUSD(selectedUpstream.quota_uncached_input_rate, locale)} mono />
+                  )}
+                  {selectedUpstream.quota_cached_input_rate !== undefined && (
+                    <ModelStat label={t("models.quota_cached_input_rate")} value={formatQuotaRateWithUSD(selectedUpstream.quota_cached_input_rate, locale)} mono />
+                  )}
+                  {selectedUpstream.quota_output_rate !== undefined && (
+                    <ModelStat label={t("models.quota_output_rate")} value={formatQuotaRateWithUSD(selectedUpstream.quota_output_rate, locale)} mono />
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {capabilityOptions.filter((key) => selectedUpstream.capabilities?.[key] !== undefined).map((key) => (

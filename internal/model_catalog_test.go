@@ -12,6 +12,7 @@ import (
 )
 
 func TestDecodeUpstreamModelMetadata(t *testing.T) {
+	ptrFloat := func(f float64) *float64 { return &f }
 	for _, tc := range []struct {
 		name, protocol, body string
 		want                 []upstreamModel
@@ -19,6 +20,10 @@ func TestDecodeUpstreamModelMetadata(t *testing.T) {
 		{"OpenRouter", providerOpenAI, `{"data":[{"id":" vendor/next ","name":"Next","context_length":65536,"architecture":{"input_modalities":["text","image"]},"supported_parameters":["tools","reasoning","structured_outputs"],"top_provider":{"max_completion_tokens":8192}},{"id":"text","architecture":{"input_modalities":["text"]},"supported_parameters":[]}]}`, []upstreamModel{
 			{ID: "vendor/next", Name: "Next", ModelMetadata: ModelMetadata{ContextWindow: 65536, MaxOutputTokens: 8192, Capabilities: map[string]bool{"vision": true, "audio_input": false, "tools": true, "reasoning": true, "json_schema": true}}},
 			{ID: "text", ModelMetadata: ModelMetadata{Capabilities: map[string]bool{"vision": false, "audio_input": false, "tools": false, "reasoning": false, "json_schema": false}}},
+		}},
+		{"OpenRouterWithPricing", providerOpenAI, `{"data":[{"id":"openrouter/claude-3.5-sonnet","name":"Claude 3.5 Sonnet","context_length":200000,"pricing":{"prompt":"0.000003","completion":"0.000015","input_cache_read":"0.0000003"}},{"id":"openrouter/numeric-pricing","pricing":{"prompt":0.0000025,"completion":0.00001}}]}`, []upstreamModel{
+			{ID: "openrouter/claude-3.5-sonnet", Name: "Claude 3.5 Sonnet", ModelMetadata: ModelMetadata{ContextWindow: 200000, QuotaUncachedInputRate: ptrFloat(3000), QuotaOutputRate: ptrFloat(15000), QuotaCachedInputRate: ptrFloat(300), Capabilities: map[string]bool{}}},
+			{ID: "openrouter/numeric-pricing", ModelMetadata: ModelMetadata{QuotaUncachedInputRate: ptrFloat(2500), QuotaOutputRate: ptrFloat(10000), Capabilities: map[string]bool{}}},
 		}},
 		{"Responses", providerOpenAIResponses, `{"data":[{"id":"audio","architecture":{"input_modalities":["text","audio"]},"supported_parameters":["response_format"]}]}`, []upstreamModel{{ID: "audio", ModelMetadata: ModelMetadata{Capabilities: map[string]bool{"vision": false, "audio_input": true, "tools": false, "reasoning": false, "json_schema": false}}}}},
 		{"Unknown", providerOpenAI, `{"data":[{"id":"new-model","context_length":-1,"architecture":{"input_modalities":null},"supported_parameters":null,"top_provider":{"max_completion_tokens":0}},{"id":"new-model"},{"id":" "}]}`, []upstreamModel{{ID: "new-model", ModelMetadata: ModelMetadata{Capabilities: map[string]bool{}}}}},
@@ -55,7 +60,7 @@ func TestRouteCatalogImportAndPublicRoundTrip(t *testing.T) {
 		if r.URL.Path != "/api/v1/models" || r.Header.Get("Authorization") != "Bearer fixture-secret" {
 			t.Errorf("unexpected discovery request: %s", r.URL.Path)
 		}
-		w.Write([]byte(`{"data":[{"id":"vendor/next","name":"Remote Name","context_length":65536,"architecture":{"input_modalities":["text","image"]},"supported_parameters":["tools","reasoning"],"top_provider":{"max_completion_tokens":8192}}]}`))
+		w.Write([]byte(`{"data":[{"id":"vendor/next","name":"Remote Name","context_length":65536,"pricing":{"prompt":"0.000003","completion":"0.000015","input_cache_read":"0.0000003"},"architecture":{"input_modalities":["text","image"]},"supported_parameters":["tools","reasoning"],"top_provider":{"max_completion_tokens":8192}}]}`))
 	}))
 	defer upstream.Close()
 	provider, err := srv.store.CreateProvider(ProviderRecord{Name: "Catalog", Enabled: true, Endpoints: []ProviderEndpoint{{Protocol: providerOpenAI, BaseURL: upstream.URL + "/api/v1", Enabled: true}}})
@@ -90,14 +95,14 @@ func TestRouteCatalogImportAndPublicRoundTrip(t *testing.T) {
 		t.Fatalf("save: %d %s", rr.Code, rr.Body.String())
 	}
 	saved, _ := srv.store.Model(model.ID)
-	if saved.Name != model.Name || saved.DisplayName != model.DisplayName || saved.Icon != model.Icon || saved.Description != model.Description || saved.QuotaUncachedInputRate != 42 || saved.ContextWindow != 65536 || saved.MaxOutputTokens != 8192 {
+	if saved.Name != model.Name || saved.DisplayName != model.DisplayName || saved.Icon != model.Icon || saved.Description != model.Description || saved.QuotaUncachedInputRate != 3000 || saved.QuotaOutputRate != 15000 || saved.QuotaCachedInputRate != 300 || saved.ContextWindow != 65536 || saved.MaxOutputTokens != 8192 {
 		t.Fatalf("saved model = %+v", saved)
 	}
 	// Exercise the actual public JSON, then parse it like another client/proxy.
 	public := httptest.NewRecorder()
 	srv.handleOpenAIModels(public, httptest.NewRequest(http.MethodGet, "/v1/models", nil), AuthToken{})
 	roundtrip, err := decodeUpstreamModels(bytes.NewReader(public.Body.Bytes()), providerOpenAI)
-	if err != nil || len(roundtrip) != 1 || roundtrip[0].ContextWindow != 65536 || roundtrip[0].MaxOutputTokens != 8192 || !roundtrip[0].Capabilities["vision"] || roundtrip[0].Capabilities["audio_input"] || roundtrip[0].Capabilities["json_schema"] {
+	if err != nil || len(roundtrip) != 1 || roundtrip[0].ContextWindow != 65536 || roundtrip[0].MaxOutputTokens != 8192 || !roundtrip[0].Capabilities["vision"] || roundtrip[0].Capabilities["audio_input"] || roundtrip[0].Capabilities["json_schema"] || roundtrip[0].QuotaUncachedInputRate == nil || *roundtrip[0].QuotaUncachedInputRate != 3000 || roundtrip[0].QuotaOutputRate == nil || *roundtrip[0].QuotaOutputRate != 15000 || roundtrip[0].QuotaCachedInputRate == nil || *roundtrip[0].QuotaCachedInputRate != 300 {
 		t.Fatalf("public roundtrip: %s / %v", public.Body.String(), err)
 	}
 	// A second route without opting in must leave the shared model unchanged.

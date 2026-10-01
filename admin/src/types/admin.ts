@@ -174,6 +174,9 @@ export type ModelMetadata = {
   context_window?: number;
   max_input_tokens?: number;
   max_output_tokens?: number;
+  quota_uncached_input_rate?: number;
+  quota_cached_input_rate?: number;
+  quota_output_rate?: number;
   capabilities?: Record<string, boolean>;
 };
 
