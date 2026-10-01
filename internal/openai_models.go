@@ -92,7 +92,7 @@ func publicModelMetadata(model Model) openAIModelObject {
 }
 
 func calculateCostMultiplier(model Model) *float64 {
-	cost := model.QuotaCachedInputRate*0.48 + model.QuotaUncachedInputRate*0.32 + model.QuotaOutputRate*0.20
+	cost := model.QuotaCachedInputRate*0.64 + model.QuotaUncachedInputRate*0.16 + model.QuotaOutputRate*0.20
 	if cost < 0 || math.IsNaN(cost) || math.IsInf(cost, 0) {
 		return nil
 	}

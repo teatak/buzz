@@ -96,24 +96,24 @@ func TestPublicModelMetadataCostMultiplier(t *testing.T) {
 		wantMult *float64
 	}{
 		{
-			name: "deepseek 0.1x",
+			name: "deepseek 0.08x",
 			model: Model{
 				Name:                   "deepseek-flash",
 				QuotaCachedInputRate:   3,
 				QuotaUncachedInputRate: 140,
 				QuotaOutputRate:        280,
 			},
-			wantMult: float64Ptr(0.1),
+			wantMult: float64Ptr(0.08),
 		},
 		{
-			name: "flagship 3.4x",
+			name: "flagship 3.2x",
 			model: Model{
 				Name:                   "gpt-4o",
 				QuotaCachedInputRate:   1250,
 				QuotaUncachedInputRate: 2500,
 				QuotaOutputRate:        10000,
 			},
-			wantMult: float64Ptr(3.4),
+			wantMult: float64Ptr(3.2),
 		},
 		{
 			name: "zero rate 0x",

@@ -723,8 +723,8 @@ export function calculateModelMultiplier(model: {
   const cached = Number(model.quota_cached_input_rate) || 0;
   const uncached = Number(model.quota_uncached_input_rate) || 0;
   const output = Number(model.quota_output_rate) || 0;
-  // 综合成本 = 缓存输入*0.48 + 未缓存输入*0.32 + 输出*0.20
-  const cost = cached * 0.48 + uncached * 0.32 + output * 0.20;
+  // 综合成本 = 缓存输入*0.64 + 未缓存输入*0.16 + 输出*0.20 (按 80% 缓存命中率基准)
+  const cost = cached * 0.64 + uncached * 0.16 + output * 0.20;
   if (cost < 0 || isNaN(cost)) return null;
   if (cost === 0) {
     return { isFree: true, multiplier: "FREE", cost: 0 };
