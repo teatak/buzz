@@ -1,6 +1,9 @@
 package buzzhive
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 type ModelPreset struct {
 	ID              string `json:"id"`
@@ -28,17 +31,18 @@ func modelPresets() []ModelPreset {
 		{ID: "gemini-3.1-pro-preview", Family: "Gemini", Name: "gemini-3.1-pro-preview", DisplayName: "Gemini 3.1 Pro Preview", Description: "Google pro multimodal preview model.", ContextWindow: 1048576, MaxInputTokens: 1048576, MaxOutputTokens: 65536, Capabilities: capMultimodal, SelectionPolicy: "round_robin"},
 
 		{ID: "gpt-6-astra", Family: "OpenAI", Name: "gpt-6-astra", DisplayName: "GPT 6 Astra", Description: "OpenAI flagship reasoning model. Tool calling requires Responses; omit temperature and top_p.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
-		{ID: "gpt-5.6-sol", Family: "OpenAI", Name: "gpt-5.6-sol", DisplayName: "GPT 5.6 Sol", Description: "OpenAI multimodal model.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
-		{ID: "gpt-5.6-terra", Family: "OpenAI", Name: "gpt-5.6-terra", DisplayName: "GPT 5.6 Terra", Description: "OpenAI multimodal model.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
+		{ID: "gpt-6.1-sol", Family: "OpenAI", Name: "gpt-6.1-sol", DisplayName: "GPT 6.1 Sol", Description: "OpenAI flagship coding and reasoning multimodal model.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
+		{ID: "gpt-6-luna", Family: "OpenAI", Name: "gpt-6-luna", DisplayName: "GPT 6 Luna", Description: "OpenAI fast low-latency multimodal model.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "gpt-5.6-luna", Family: "OpenAI", Name: "gpt-5.6-luna", DisplayName: "GPT 5.6 Luna", Description: "OpenAI multimodal model.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "gpt-5.5", Family: "OpenAI", Name: "gpt-5.5", DisplayName: "GPT 5.5", Description: "OpenAI multimodal model.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "gpt-5.4", Family: "OpenAI", Name: "gpt-5.4", DisplayName: "GPT 5.4", Description: "OpenAI multimodal model.", ContextWindow: 1050000, MaxInputTokens: 1050000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "gpt-5.4-mini", Family: "OpenAI", Name: "gpt-5.4-mini", DisplayName: "GPT 5.4 Mini", Description: "OpenAI mini multimodal model.", ContextWindow: 400000, MaxInputTokens: 400000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "gpt-5.4-nano", Family: "OpenAI", Name: "gpt-5.4-nano", DisplayName: "GPT 5.4 Nano", Description: "OpenAI nano multimodal model.", ContextWindow: 400000, MaxInputTokens: 400000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 
-		{ID: "claude-fable-5-1", Family: "Anthropic", Name: "claude-fable-5-1", DisplayName: "Claude Fable 5.1", Description: "Anthropic model for demanding reasoning and long-running agents.", ContextWindow: 1000000, MaxInputTokens: 1000000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
+		{ID: "claude-fable-5.1", Family: "Anthropic", Name: "claude-fable-5.1", DisplayName: "Claude Fable 5.1", Description: "Anthropic model for demanding reasoning and long-running agents.", ContextWindow: 1000000, MaxInputTokens: 1000000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
+		{ID: "claude-opus-5.5", Family: "Anthropic", Name: "claude-opus-5.5", DisplayName: "Claude Opus 5.5", Description: "Anthropic flagship reasoning and complex agent model.", ContextWindow: 1000000, MaxInputTokens: 1000000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "claude-opus-5", Family: "Anthropic", Name: "claude-opus-5", DisplayName: "Claude Opus 5", Description: "Anthropic advanced coding and reasoning model.", ContextWindow: 1000000, MaxInputTokens: 1000000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
-		{ID: "claude-sonnet-5", Family: "Anthropic", Name: "claude-sonnet-5", DisplayName: "Claude Sonnet 5", Description: "Anthropic balanced coding and reasoning model.", ContextWindow: 1000000, MaxInputTokens: 1000000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
+		{ID: "claude-sonnet-5.5", Family: "Anthropic", Name: "claude-sonnet-5.5", DisplayName: "Claude Sonnet 5.5", Description: "Anthropic balanced coding and reasoning model with adaptive thinking.", ContextWindow: 1000000, MaxInputTokens: 1000000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "claude-haiku-4-5", Family: "Anthropic", Name: "claude-haiku-4-5", DisplayName: "Claude Haiku 4.5", Description: "Anthropic fast model.", ContextWindow: 200000, MaxInputTokens: 200000, MaxOutputTokens: 64000, Capabilities: capVision, SelectionPolicy: "round_robin"},
 
 		// V2.6 verified 2026-09-22; creation templates do not overwrite saved models.
@@ -57,7 +61,6 @@ func modelPresets() []ModelPreset {
 		// K2.7 documentation specifies a default output budget, not a hard maximum.
 		// Leave that metadata unset until the official limit is published.
 		{ID: "kimi-k2.7-code", Family: "Moonshot", Name: "kimi-k2.7-code", DisplayName: "Kimi K2.7 Code", Description: "Kimi coding and vision model with always-on reasoning.", ContextWindow: 262144, MaxInputTokens: 262144, MaxOutputTokens: 0, Capabilities: capVision, SelectionPolicy: "round_robin"},
-		{ID: "kimi-k2.7-code-highspeed", Family: "Moonshot", Name: "kimi-k2.7-code-highspeed", DisplayName: "Kimi K2.7 Code HighSpeed", Description: "Kimi high-speed coding and vision model with always-on reasoning.", ContextWindow: 262144, MaxInputTokens: 262144, MaxOutputTokens: 0, Capabilities: capVision, SelectionPolicy: "round_robin"},
 		{ID: "kimi-k2.6", Family: "Moonshot", Name: "kimi-k2.6", DisplayName: "Kimi K2.6", Description: "Kimi general-purpose vision model; output shares the context budget.", ContextWindow: 262144, MaxInputTokens: 262144, MaxOutputTokens: 262144, Capabilities: capVision, SelectionPolicy: "round_robin"},
 
 		{ID: "glm-5.3-flash", Family: "Zhipu", Name: "glm-5.3-flash", DisplayName: "GLM 5.3 Flash", Description: "Zhipu fast vision model with always-on reasoning.", ContextWindow: 1000000, MaxInputTokens: 1000000, MaxOutputTokens: 128000, Capabilities: capVision, SelectionPolicy: "round_robin"},
@@ -68,8 +71,12 @@ func modelPresets() []ModelPreset {
 }
 
 func findModelPreset(id string) (ModelPreset, bool) {
+	normalized := strings.ReplaceAll(id, ".", "-")
 	for _, preset := range modelPresets() {
 		if preset.ID == id || preset.Name == id {
+			return preset, true
+		}
+		if strings.ReplaceAll(preset.ID, ".", "-") == normalized {
 			return preset, true
 		}
 	}
