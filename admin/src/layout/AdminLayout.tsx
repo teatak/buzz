@@ -65,7 +65,7 @@ export function AdminLayout(props: {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">BuzzHive Admin</BreadcrumbLink>
+                  <BreadcrumbLink href="#">Buzz Admin</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>

@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"encoding/json"

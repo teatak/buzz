@@ -23,7 +23,7 @@
 - Kimi K3 默认输出预算为 131,072，但官方允许 `max_completion_tokens` 最高设置为 1,048,576；请求输入加输出预算必须在上下文内。K2.6 官方基准参数支持 256K 输出预算，同样受共享窗口限制。
 - K2.7 官方指南只明确默认输出 32,768，没有明确独立最大输出值；因此 Code 与 HighSpeed 的 `MaxOutputTokens` 暂为 `0`（未设置），不把默认值或第三方托管平台的限制当成官方上限。
 - GPT-6 Astra 工具调用必须走 `openai-responses`；创建路由时可固定上游协议为 Responses。`auto` 仍按来访协议优先透传，不因预设名称自动切换协议。Astra 不接受 `temperature`、`top_p`、`top_logprobs`，具体要求见 [官方迁移说明](https://developers.openai.com/api/docs/guides/latest-model)。
-- DeepSeek 新供应商预设包含 `openai` 与 `openai-responses`，Base URL 均为 `https://api.deepseek.com`。Responses 请求在自动路由下选 Responses 端点；Chat 请求选 Chat 端点。BuzzHive 保留入口 `/v1/responses` 路径；2026-09-14 无 Key 的空请求探测 `/responses` 与 `/v1/responses` 均返回 401，未进行付费推理验证。
+- DeepSeek 新供应商预设包含 `openai` 与 `openai-responses`，Base URL 均为 `https://api.deepseek.com`。Responses 请求在自动路由下选 Responses 端点；Chat 请求选 Chat 端点。Buzz 保留入口 `/v1/responses` 路径；2026-09-14 无 Key 的空请求探测 `/responses` 与 `/v1/responses` 均返回 401，未进行付费推理验证。
 - DeepSeek Responses 为无状态兼容接口，不提供 OpenAI 的完整持久化与内置工具能力；详见上方官方兼容性表。GLM 5.3 系列与 Kimi K3/K2.7、Claude Fable 5.1 均有始终开启思考的限制。预设描述提示模型用途，路由和参数转换仍使用既有配置与实现。
 
 本次未改管理员设置的 Credits 费率，也未自动迁移线上模型或路由。
@@ -53,7 +53,7 @@
 {
   "object": "list",
   "data": [{
-    "id": "my-model", "object": "model", "created": 0, "owned_by": "buzzhive",
+    "id": "my-model", "object": "model", "created": 0, "owned_by": "buzz",
     "name": "My Model", "description": "Saved description",
     "context_length": 65536,
     "cost_multiplier": 1.0,

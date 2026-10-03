@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func (s *Server) proxy(w http.ResponseWriter, r *http.Request, body []byte, user AuthToken, originalModel string) {

@@ -1,4 +1,4 @@
-IMAGE ?= teatak/buzzhive
+IMAGE ?= teatak/buzz
 TAG ?= latest
 PLATFORMS ?= linux/amd64,linux/arm64
 
@@ -7,7 +7,7 @@ PLATFORMS ?= linux/amd64,linux/arm64
 dev:
 	@test -f config.yaml || cp config.example.yaml config.yaml
 	docker compose -f docker-compose.dev.yml up -d postgres redis
-	go run ./cmd/buzzhive -config config.yaml & \
+	go run ./cmd/buzz -config config.yaml & \
 	$(MAKE) admin-dev
 
 admin-build:

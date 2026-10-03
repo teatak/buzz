@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func createRouteTestServer(t *testing.T, proto string, baseURL string, publicModel string, upstreamModel string, keySecret string, client *http.Client) (*Server, *Store) {

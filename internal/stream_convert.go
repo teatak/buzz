@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"bufio"
@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func writeSSEJSON(w io.Writer, flusher http.Flusher, event string, value any) {

@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"bufio"
@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func createGeminiRouteTestStore(t *testing.T, baseURL, publicModel, upstreamModel, keySecret string) (*Store, []APIKey) {

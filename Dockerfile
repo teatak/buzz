@@ -18,19 +18,19 @@ RUN go mod download
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 COPY VERSION ./VERSION
-RUN CGO_ENABLED=1 GOOS=linux go build -trimpath -ldflags="-s -w -X 'github.com/teatak/buzzhive/internal.Version=$(cat VERSION)'" -o /out/buzzhive ./cmd/buzzhive
+RUN CGO_ENABLED=1 GOOS=linux go build -trimpath -ldflags="-s -w -X 'github.com/teatak/buzz/internal.Version=$(cat VERSION)'" -o /out/buzz ./cmd/buzz
 
 FROM debian:bookworm-slim
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends ca-certificates curl tzdata \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& useradd --system --uid 10001 --home-dir /app buzzhive \
+	&& useradd --system --uid 10001 --home-dir /app buzz \
 	&& mkdir -p /app/admin/dist /config \
-	&& chown -R buzzhive:buzzhive /app
+	&& chown -R buzz:buzz /app
 WORKDIR /app
-COPY --from=go-builder /out/buzzhive /usr/local/bin/buzzhive
+COPY --from=go-builder /out/buzz /usr/local/bin/buzz
 COPY --from=admin-builder /src/admin/dist /app/admin/dist
 COPY config.example.yaml /app/config.example.yaml
-USER buzzhive
+USER buzz
 EXPOSE 9622
-CMD ["buzzhive", "-config", "/config/config.yaml", "-admin-dir", "/app/admin/dist"]
+CMD ["buzz", "-config", "/config/config.yaml", "-admin-dir", "/app/admin/dist"]

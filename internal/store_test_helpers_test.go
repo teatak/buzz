@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"database/sql"
@@ -19,9 +19,9 @@ func openTestStore(t *testing.T) *Store {
 
 func openTestStoreWithSetup(t *testing.T, setup func(*sql.DB)) *Store {
 	t.Helper()
-	rawURL := os.Getenv("BUZZHIVE_TEST_DATABASE_URL")
+	rawURL := os.Getenv("BUZZ_TEST_DATABASE_URL")
 	if rawURL == "" {
-		t.Skip("BUZZHIVE_TEST_DATABASE_URL is not set")
+		t.Skip("BUZZ_TEST_DATABASE_URL is not set")
 	}
 
 	schema := "test_" + strconv.FormatInt(time.Now().UnixNano(), 36)

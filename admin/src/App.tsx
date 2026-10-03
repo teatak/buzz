@@ -494,9 +494,9 @@ export function App() {
           <LocaleToggle />
         </div>
         <div className="login-brand">
-          <BrandIcon name="buzzhive" className="size-8" />
+          <BrandIcon name="buzz" className="size-8" />
           <div>
-            <h1>BuzzHive</h1>
+            <h1>Buzz</h1>
             <p>{t("common.loading_admin")}</p>
           </div>
         </div>
@@ -513,9 +513,9 @@ export function App() {
         </div>
         <div className="login-shell">
           <div className="login-brand">
-            <BrandIcon name="buzzhive" className="size-10" />
+            <BrandIcon name="buzz" className="size-10" />
             <div>
-              <h1>BuzzHive</h1>
+              <h1>Buzz</h1>
               <p>{t("app.subtitle")}</p>
             </div>
           </div>

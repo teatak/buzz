@@ -1,11 +1,11 @@
-package buzzhive
+package buzz
 
 import (
 	"encoding/json"
 	"errors"
 	"net/http"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func (s *Server) handleAnthropicPassthrough(w http.ResponseWriter, r *http.Request, body []byte, user AuthToken) {

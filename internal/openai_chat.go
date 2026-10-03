@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func (s *Server) handleOpenAIChatCompletions(w http.ResponseWriter, r *http.Request, body []byte, user AuthToken) {

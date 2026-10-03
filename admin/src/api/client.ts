@@ -1,4 +1,4 @@
-export const storageKey = "buzzhive-admin-key";
+export const storageKey = "buzz-admin-key";
 
 export function request<T>(path: string, token: string, options: RequestInit = {}): Promise<T> {
   return fetch(path, {

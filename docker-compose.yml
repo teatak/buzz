@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: buzzhive
-      POSTGRES_USER: buzzhive
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buzzhive-change-me}
+      POSTGRES_DB: buzz
+      POSTGRES_USER: buzz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buzz-change-me}
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U buzzhive -d buzzhive"]
+      test: ["CMD-SHELL", "pg_isready -U buzz -d buzz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,8 +26,8 @@ services:
       timeout: 5s
       retries: 5
 
-  buzzhive:
-    image: ${IMAGE:-teatak/buzzhive:latest}
+  buzz:
+    image: ${IMAGE:-teatak/buzz:latest}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -38,8 +38,8 @@ services:
       - "${PORT:-9622}:9622"
     environment:
       TZ: ${TZ:-Asia/Singapore}
-      BUZZHIVE_DATABASE_URL: postgres://buzzhive:${POSTGRES_PASSWORD:-buzzhive-change-me}@postgres:5432/buzzhive?sslmode=disable
-      BUZZHIVE_REDIS_ADDR: redis:6379
+      BUZZ_DATABASE_URL: postgres://buzz:${POSTGRES_PASSWORD:-buzz-change-me}@postgres:5432/buzz?sslmode=disable
+      BUZZ_REDIS_ADDR: redis:6379
     volumes:
       - ./config.yaml:/config/config.yaml:ro
     healthcheck:

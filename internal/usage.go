@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 	"github.com/teatak/cart/v3"
 )
 

@@ -12,7 +12,7 @@ export const modelIconOptions = [
   { value: "grok", label: "Grok" },
   { value: "openrouter", label: "OpenRouter" },
   { value: "ollama", label: "Ollama" },
-  { value: "buzzhive", label: "BuzzHive" },
+  { value: "buzz", label: "Buzz" },
 ] as const;
 
 // Ported from Pudding's web/src/provider/presets.ts (providerBrandForModel).

@@ -1,25 +1,25 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: buzzhive-postgres
+    container_name: buzz-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: buzzhive
-      POSTGRES_USER: buzzhive
-      POSTGRES_PASSWORD: buzzhive
+      POSTGRES_DB: buzz
+      POSTGRES_USER: buzz
+      POSTGRES_PASSWORD: buzz
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U buzzhive -d buzzhive"]
+      test: ["CMD-SHELL", "pg_isready -U buzz -d buzz"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: buzzhive-redis
+    container_name: buzz-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports:
@@ -32,10 +32,10 @@ services:
       timeout: 5s
       retries: 5
 
-  buzzhive:
+  buzz:
     build: .
-    image: buzzhive:local
-    container_name: buzzhive
+    image: buzz:local
+    container_name: buzz
     restart: unless-stopped
     depends_on:
       postgres:
@@ -46,7 +46,7 @@ services:
       - "9622:9622"
     environment:
       TZ: Asia/Singapore
-      BUZZHIVE_DATABASE_URL: postgres://buzzhive:buzzhive@postgres:5432/buzzhive?sslmode=disable
+      BUZZ_DATABASE_URL: postgres://buzz:buzz@postgres:5432/buzz?sslmode=disable
     volumes:
       - type: bind
         source: ./config.yaml

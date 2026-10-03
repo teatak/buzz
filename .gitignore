@@ -8,3 +8,5 @@ config.yaml
 admin/node_modules
 admin/dist
 admin/tsconfig.tsbuildinfo
+
+/buzz

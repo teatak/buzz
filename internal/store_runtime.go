@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 func (s *Store) ReloadRuntime() (map[string]AuthToken, []ProviderRecord, []APIKey, error) {
 	tokens, err := s.AuthTokens()

@@ -207,7 +207,7 @@ export function OpenRouterIcon({ className }: { className?: string }) {
   );
 }
 
-export function BuzzHiveIcon({ className }: { className?: string }) {
+export function BuzzIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="-11.333 -11.333 86.667 86.667"
@@ -263,13 +263,13 @@ const brandBackgrounds: Record<string, string> = {
   moonshot: "#010103",
   zhipu: "#2D2D2D",
   openrouter: "#000000",
-  buzzhive: "#4F46E5",
+  buzz: "#4F46E5",
   ollama: "#111111",
   claude: "#D97757",
   grok: "#000000",
 };
 
-const buzzHiveBackground = "radial-gradient(circle at 28% 20%, rgba(255,255,255,.34), transparent 58%), linear-gradient(132deg, #7c3aed 0%, #4f46e5 52%, #2563eb 100%)";
+const buzzBackground = "radial-gradient(circle at 28% 20%, rgba(255,255,255,.34), transparent 58%), linear-gradient(132deg, #7c3aed 0%, #4f46e5 52%, #2563eb 100%)";
 
 function normalizeBrandName(name: string) {
   switch (name.toLowerCase()) {
@@ -311,8 +311,8 @@ function BrandMark({ name, className }: { name: string; className?: string }) {
       return <ZhipuIcon className={className} />;
     case "openrouter":
       return <OpenRouterIcon className={className} />;
-    case "buzzhive":
-      return <BuzzHiveIcon className={className} />;
+    case "buzz":
+      return <BuzzIcon className={className} />;
     case "ollama":
       return <OllamaIcon className={className} />;
     case "claude":
@@ -343,8 +343,8 @@ export function BrandIcon({
   const isOpenRouter = normalizedName === "openrouter";
   const lightBackground = normalizedName === "gemini" || normalizedName === "ollama";
   const style: CSSProperties | undefined =
-    normalizedName === "buzzhive"
-      ? { backgroundImage: buzzHiveBackground }
+    normalizedName === "buzz"
+      ? { backgroundImage: buzzBackground }
       : isOpenRouter || lightBackground
         ? undefined
         : { backgroundColor: brandBackgrounds[normalizedName] };

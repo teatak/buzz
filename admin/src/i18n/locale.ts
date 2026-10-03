@@ -7,7 +7,7 @@ export type Locale = "zh-CN" | "zh-TW" | "en";
 export type Dict = Record<string, string>;
 
 const FALLBACK_LOCALE: Locale = "zh-CN";
-const STORAGE_KEY = "buzzhive.locale";
+const STORAGE_KEY = "buzz.locale";
 const DICTS: Record<Locale, Dict> = {
   "zh-CN": zhCNDict,
   "zh-TW": zhTWDict,

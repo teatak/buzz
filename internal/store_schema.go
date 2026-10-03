@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 func (s *Store) EnsureSchema() error {
 	tx, err := s.db.Begin()

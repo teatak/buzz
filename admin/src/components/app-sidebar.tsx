@@ -39,9 +39,9 @@ export function AppSidebar({ role, view, version, onNavigate }: AppSidebarProps)
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="hover:bg-transparent hover:text-foreground">
-              <BrandIcon name="buzzhive" className="size-8 transition-transform duration-300 ease-in-out" iconClassName="!size-full" />
+              <BrandIcon name="buzz" className="size-8 transition-transform duration-300 ease-in-out" iconClassName="!size-full" />
               <div className="grid flex-1 text-left text-sm leading-tight transition-transform duration-300 ease-in-out">
-                <span className="truncate font-semibold">BuzzHive</span>
+                <span className="truncate font-semibold">Buzz</span>
                 <span className="truncate text-xs text-muted-foreground">{t("app.subtitle")}</span>
               </div>
             </SidebarMenuButton>

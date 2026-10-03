@@ -4,13 +4,13 @@
 
 状态：规划中，尚未实施
 
-代码基线：[c12abcd043b3ba9795056ead4954cc8642eb6d18](https://github.com/teatak/buzzhive/commit/c12abcd043b3ba9795056ead4954cc8642eb6d18)
+代码基线：[c12abcd043b3ba9795056ead4954cc8642eb6d18](https://github.com/teatak/buzz/commit/c12abcd043b3ba9795056ead4954cc8642eb6d18)
 
 ## 目标与边界
 
-BuzzHive 从早期设计就应支持横向扩容，同时保留简单的单机 Docker 安装体验：
+Buzz 从早期设计就应支持横向扩容，同时保留简单的单机 Docker 安装体验：
 
-- 小规模部署可以继续使用一个 BuzzHive 实例。
+- 小规模部署可以继续使用一个 Buzz 实例。
 - 需要扩容时，同一套程序可以在负载均衡器后运行多个副本，共享外部 PostgreSQL 和 Redis。
 - 新增副本、重启和滚动升级不应改变鉴权、配置、会话和额度的正确性。
 - 暂不要求拆分微服务或引入 Kubernetes；团队、任务等其他产品功能不属于本次评估范围。
@@ -37,8 +37,8 @@ BuzzHive 从早期设计就应支持横向扩容，同时保留简单的单机 D
 
 ### 外部 PostgreSQL 与 Redis
 
-- `BUZZHIVE_DATABASE_URL` 已支持连接外部 PostgreSQL。
-- Redis 可使用 `BUZZHIVE_REDIS_URL`，或 `BUZZHIVE_REDIS_ADDR`、`BUZZHIVE_REDIS_PASSWORD`、`BUZZHIVE_REDIS_DB` 配置。
+- `BUZZ_DATABASE_URL` 已支持连接外部 PostgreSQL。
+- Redis 可使用 `BUZZ_REDIS_URL`，或 `BUZZ_REDIS_ADDR`、`BUZZ_REDIS_PASSWORD`、`BUZZ_REDIS_DB` 配置。
 - Redis 已用于后台会话、路由会话、工具签名和 Key 冷却状态。配置 Redis 后，启动时会检查连接。
 - PostgreSQL 保存用户、API Keys、provider、模型、路由及 usage 等持久化数据。
 
@@ -199,7 +199,7 @@ provider client registry 与 provider Key 列表保存在进程内。新增 prov
 - [ ] SIGTERM 后先摘除 readiness，再停止接收新请求，等待普通请求和 SSE 在配置期限内完成。
 - [ ] 请求生产者停止后，显式排空 usage 队列及 batch，确认 writer 退出，再关闭 Redis/数据库连接。
 - [ ] 协调负载均衡排空、应用 shutdown 超时与容器停止宽限期；超时仍未结束的流需有明确终止行为。
-- [ ] 多副本部署由负载均衡器占用宿主机端口，BuzzHive 副本仅暴露容器内部端口。现有 Compose 固定映射 `9622`，不能原样通过 `--scale buzzhive=N` 扩容。
+- [ ] 多副本部署由负载均衡器占用宿主机端口，Buzz 副本仅暴露容器内部端口。现有 Compose 固定映射 `9622`，不能原样通过 `--scale buzz=N` 扩容。
 - [ ] 为 SSE 关闭代理响应缓冲，设置合适的流式超时；负载均衡器不得自动重放模型生成 POST，以免重复生成和计费。
 
 进程硬崩溃时，正在传输的流仍会中断；另一个副本不能接续原 TCP/SSE 流。多副本解决新请求的可用性，不能承诺在途流无损迁移。
@@ -227,7 +227,7 @@ provider client registry 与 provider Key 列表保存在进程内。新增 prov
 
 ## 双副本验收清单
 
-测试环境：A、B 两个独立 BuzzHive 进程，共享 PostgreSQL/Redis，通过负载均衡器交替处理请求。测试应同时支持指定实例验证，避免粘性会话掩盖问题。
+测试环境：A、B 两个独立 Buzz 进程，共享 PostgreSQL/Redis，通过负载均衡器交替处理请求。测试应同时支持指定实例验证，避免粘性会话掩盖问题。
 
 - [ ] A 创建首个 API Key 后，B 能识别新 Key，未携带 Key 的请求仍被拒绝。
 - [ ] A 撤销 Key、禁用用户或撤销最后一个 Key 后，A/B 对新请求结果一致，不退化为匿名访问。
@@ -252,30 +252,30 @@ provider client registry 与 provider Key 列表保存在进程内。新增 prov
 
 下列链接固定在本次评估的 commit，便于后续对照实现变化。
 
-[S1]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/config.go#L27-L50
-[S2]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/runtime_cache.go
-[S3]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store.go#L14-L43
-[S4]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L550-L655
-[S5]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/README.zh-CN.md
-[S6]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_usage.go#L10-L193
-[S7]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/provider.go#L119-L139
-[S8]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_provider.go#L284-L352
-[S9]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/server.go#L13-L110
-[S10]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L519-L548
-[S11]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_users.go#L12-L35
-[S12]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L1317-L1358
-[S13]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_runtime.go
-[S14]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/key_state.go
-[S15]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L208-L212
-[S16]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/key_cooldown.go
-[S17]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/route_session.go
-[S18]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/tool_signatures.go
-[S19]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/quota.go
-[S20]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_quota.go
-[S21]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/usage.go#L49-L122
-[S22]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/usage.go#L241-L266
-[S23]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_schema.go
-[S24]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_users.go#L274-L280
-[S25]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/server.go#L113-L158
-[S26]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/run.go
-[S27]: https://github.com/teatak/buzzhive/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/docker-compose.yml
+[S1]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/config.go#L27-L50
+[S2]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/runtime_cache.go
+[S3]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store.go#L14-L43
+[S4]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L550-L655
+[S5]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/README.zh-CN.md
+[S6]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_usage.go#L10-L193
+[S7]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/provider.go#L119-L139
+[S8]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_provider.go#L284-L352
+[S9]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/server.go#L13-L110
+[S10]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L519-L548
+[S11]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_users.go#L12-L35
+[S12]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L1317-L1358
+[S13]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_runtime.go
+[S14]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/key_state.go
+[S15]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/admin_api.go#L208-L212
+[S16]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/key_cooldown.go
+[S17]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/route_session.go
+[S18]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/tool_signatures.go
+[S19]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/quota.go
+[S20]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_quota.go
+[S21]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/usage.go#L49-L122
+[S22]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/usage.go#L241-L266
+[S23]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_schema.go
+[S24]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/store_users.go#L274-L280
+[S25]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/server.go#L113-L158
+[S26]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/internal/run.go
+[S27]: https://github.com/teatak/buzz/blob/c12abcd043b3ba9795056ead4954cc8642eb6d18/docker-compose.yml

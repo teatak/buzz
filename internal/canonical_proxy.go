@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 const defaultAnthropicMaxOutputTokens = 4096

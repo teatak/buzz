@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 type ProviderPresetEndpoint struct {
 	Protocol string `json:"protocol"`

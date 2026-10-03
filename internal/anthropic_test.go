@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func TestAnthropicPassthrough(t *testing.T) {

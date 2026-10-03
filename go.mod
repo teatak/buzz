@@ -1,4 +1,4 @@
-module github.com/teatak/buzzhive
+module github.com/teatak/buzz
 
 go 1.25.1
 

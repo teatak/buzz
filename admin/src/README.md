@@ -1,4 +1,4 @@
-# BuzzHive Admin Framework
+# Buzz Admin Framework
 
 The admin app is a Vite + React + Tailwind v4 + shadcn/ui surface.
 
@@ -9,7 +9,7 @@ The admin app is a Vite + React + Tailwind v4 + shadcn/ui surface.
 - `router/`: hash route mapping.
 - `lib/`: pure helpers.
 - `components/ui/`: shadcn-style primitives. Add copied shadcn components here.
-- `components/`: BuzzHive shared components built from `components/ui`.
+- `components/`: Buzz shared components built from `components/ui`.
 - `layout/`: shell/sidebar/topbar components.
 - `views/`: page-level views such as dashboard, providers, and models.
 

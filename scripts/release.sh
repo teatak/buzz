@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-IMAGE="${IMAGE:-teatak/buzzhive}"
+IMAGE="${IMAGE:-teatak/buzz}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 KIND="${1:-patch}"
 

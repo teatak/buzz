@@ -6,7 +6,7 @@
 
 ## 目标
 
-BuzzHive 对外和对上游支持四种生成协议：
+Buzz 对外和对上游支持四种生成协议：
 
 - `openai`：OpenAI Chat Completions
 - `openai-responses`：OpenAI Responses

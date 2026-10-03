@@ -1,6 +1,6 @@
 -- Dev/test token usage seed for PostgreSQL.
 -- Run from the project root:
---   docker compose exec -T postgres psql -U buzzhive -d buzzhive < scripts/seed-token-usage.postgres.sql
+--   docker compose exec -T postgres psql -U buzz -d buzz < scripts/seed-token-usage.postgres.sql
 --
 -- This script is idempotent for its own demo rows. It removes rows marked with
 -- "token_usage_demo" and rebuilds usage aggregate tables from usage_logs.

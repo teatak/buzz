@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func TestResponsesStreamEncoderPreservesOutputIndexes(t *testing.T) {

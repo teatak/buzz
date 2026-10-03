@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"log"
@@ -26,7 +26,7 @@ func Run(configPath, adminDir string) error {
 		ReadHeaderTimeout: 15 * time.Second,
 	}
 
-	log.Printf("BuzzHive listening on http://%s", cfg.Server.Addr)
+	log.Printf("Buzz listening on http://%s", cfg.Server.Addr)
 	return httpServer.ListenAndServe()
 }
 

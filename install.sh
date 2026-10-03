@@ -5,7 +5,7 @@ INSTALL_DIR="${INSTALL_DIR:-$PWD}"
 REQUESTED_IMAGE="${IMAGE:-}"
 REQUESTED_PORT="${PORT:-}"
 REQUESTED_POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
-IMAGE="${REQUESTED_IMAGE:-teatak/buzzhive:latest}"
+IMAGE="${REQUESTED_IMAGE:-teatak/buzz:latest}"
 PORT="${REQUESTED_PORT:-9622}"
 POSTGRES_PASSWORD="$REQUESTED_POSTGRES_PASSWORD"
 
@@ -54,7 +54,7 @@ if [ -z "$POSTGRES_PASSWORD" ]; then
   if command -v openssl >/dev/null 2>&1; then
     POSTGRES_PASSWORD="$(openssl rand -hex 16)"
   else
-    POSTGRES_PASSWORD="buzzhive-change-me"
+    POSTGRES_PASSWORD="buzz-change-me"
   fi
 fi
 
@@ -77,13 +77,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: buzzhive
-      POSTGRES_USER: buzzhive
+      POSTGRES_DB: buzz
+      POSTGRES_USER: buzz
       POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U buzzhive -d buzzhive"]
+      test: ["CMD-SHELL", "pg_isready -U buzz -d buzz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -100,7 +100,7 @@ services:
       timeout: 5s
       retries: 5
 
-  buzzhive:
+  buzz:
     image: \${IMAGE}
     restart: unless-stopped
     depends_on:
@@ -111,8 +111,8 @@ services:
     ports:
       - "\${PORT}:9622"
     environment:
-      BUZZHIVE_DATABASE_URL: postgres://buzzhive:\${POSTGRES_PASSWORD}@postgres:5432/buzzhive?sslmode=disable
-      BUZZHIVE_REDIS_ADDR: redis:6379
+      BUZZ_DATABASE_URL: postgres://buzz:\${POSTGRES_PASSWORD}@postgres:5432/buzz?sslmode=disable
+      BUZZ_REDIS_ADDR: redis:6379
     volumes:
       - ./config.yaml:/config/config.yaml:ro
 EOF
@@ -139,13 +139,13 @@ stop:
 	@echo "$(G)[OK]$(C)"
 
 logs:
-	@docker compose -f docker-compose.yml logs -f buzzhive
+	@docker compose -f docker-compose.yml logs -f buzz
 EOF
 
 docker compose pull
 docker compose up -d
 
 echo
-echo "BuzzHive is running."
+echo "Buzz is running."
 echo "Install dir: $INSTALL_DIR"
 echo "Open: http://<server-ip>:${PORT}/admin/"

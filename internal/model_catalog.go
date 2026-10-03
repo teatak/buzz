@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"encoding/json"
@@ -92,7 +92,7 @@ func parseTokenPriceToRate(priceStr string) (*float64, bool) {
 	return &val, true
 }
 
-// OpenRouter's discovery fields are also used by BuzzHive's public directory.
+// OpenRouter's discovery fields are also used by Buzz's public directory.
 type catalogModel struct {
 	ID                  string             `json:"id"`
 	Name                string             `json:"name,omitempty"`

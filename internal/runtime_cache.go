@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"context"
@@ -168,15 +168,15 @@ func adminSessionKey(token string) string {
 }
 
 func adminSessionKeyFromHash(hash string) string {
-	return "bh:admin-session:" + hash
+	return "buzz:admin-session:" + hash
 }
 
 func adminUserSessionsKey(userID int64) string {
-	return "bh:admin-user-sessions:" + strconv.FormatInt(userID, 10)
+	return "buzz:admin-user-sessions:" + strconv.FormatInt(userID, 10)
 }
 
 func adminSessionsRevokedKey(userID int64) string {
-	return "bh:admin-sessions-revoked:" + strconv.FormatInt(userID, 10)
+	return "buzz:admin-sessions-revoked:" + strconv.FormatInt(userID, 10)
 }
 
 func (c *RuntimeCache) adminSessionsRevokedAt(ctx context.Context, userID int64) (time.Time, error) {
@@ -271,7 +271,7 @@ func (c *RuntimeCache) DeleteRouteSession(ctx context.Context, key string) error
 }
 
 func routeSessionKey(key string) string {
-	return "bh:route-session:" + sessionHash(key)
+	return "buzz:route-session:" + sessionHash(key)
 }
 
 func (c *RuntimeCache) ToolSignature(ctx context.Context, key string) (string, error) {
@@ -296,7 +296,7 @@ func (c *RuntimeCache) SetToolSignature(ctx context.Context, key, signature stri
 }
 
 func toolSignatureCacheKey(key string) string {
-	return "bh:tool-signature:" + sessionHash(key)
+	return "buzz:tool-signature:" + sessionHash(key)
 }
 
 func (c *RuntimeCache) KeyCooldown(ctx context.Context, key string) (time.Time, bool, error) {
@@ -376,7 +376,7 @@ func (c *RuntimeCache) DeleteKeyCooldown(ctx context.Context, key string) error 
 }
 
 func keyCooldownKey(key string) string {
-	return "bh:key-cooldown:" + sessionHash(key)
+	return "buzz:key-cooldown:" + sessionHash(key)
 }
 
 func keyCooldownRetention(cooldown, rpdCooldown time.Duration) time.Duration {

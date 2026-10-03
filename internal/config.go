@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"os"
@@ -28,20 +28,20 @@ func loadConfig(path string) (Config, error) {
 	if cfg.Database.Driver == "" {
 		cfg.Database.Driver = "postgres"
 	}
-	if envURL := os.Getenv("BUZZHIVE_DATABASE_URL"); envURL != "" {
+	if envURL := os.Getenv("BUZZ_DATABASE_URL"); envURL != "" {
 		cfg.Database.Driver = "postgres"
 		cfg.Database.URL = envURL
 	}
-	if envURL := os.Getenv("BUZZHIVE_REDIS_URL"); envURL != "" {
+	if envURL := os.Getenv("BUZZ_REDIS_URL"); envURL != "" {
 		cfg.Redis.URL = envURL
 	}
-	if envAddr := os.Getenv("BUZZHIVE_REDIS_ADDR"); envAddr != "" {
+	if envAddr := os.Getenv("BUZZ_REDIS_ADDR"); envAddr != "" {
 		cfg.Redis.Addr = envAddr
 	}
-	if envPassword := os.Getenv("BUZZHIVE_REDIS_PASSWORD"); envPassword != "" {
+	if envPassword := os.Getenv("BUZZ_REDIS_PASSWORD"); envPassword != "" {
 		cfg.Redis.Password = envPassword
 	}
-	if envDB := os.Getenv("BUZZHIVE_REDIS_DB"); envDB != "" {
+	if envDB := os.Getenv("BUZZ_REDIS_DB"); envDB != "" {
 		db, err := strconv.Atoi(envDB)
 		if err != nil {
 			return cfg, err

@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"bytes"
@@ -105,7 +105,7 @@ func TestModelIconMigrationPreservesModelsAndSurvivesReopen(t *testing.T) {
 	if err := store.Close(); err != nil {
 		t.Fatal(err)
 	}
-	reopened, err := OpenStore(DatabaseConfig{URL: databaseURLWithSearchPath(os.Getenv("BUZZHIVE_TEST_DATABASE_URL"), schema)})
+	reopened, err := OpenStore(DatabaseConfig{URL: databaseURLWithSearchPath(os.Getenv("BUZZ_TEST_DATABASE_URL"), schema)})
 	if err != nil {
 		t.Fatal(err)
 	}

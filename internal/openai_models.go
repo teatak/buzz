@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"math"
@@ -51,7 +51,7 @@ func publicModelMetadata(model Model) openAIModelObject {
 	m := openAIModelObject{catalogModel: catalogModel{
 		ID: model.Name, Name: strings.TrimSpace(model.DisplayName), Description: strings.TrimSpace(model.Description),
 		ContextLength: max(0, model.ContextWindow),
-	}, Object: "model", OwnedBy: "buzzhive"}
+	}, Object: "model", OwnedBy: "buzz"}
 	if created, err := time.Parse(time.RFC3339, model.CreatedAt); err == nil {
 		m.Created = created.Unix()
 	}

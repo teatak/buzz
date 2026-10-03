@@ -1,6 +1,8 @@
-# BuzzHive
+# Buzz
 
-BuzzHive 是一个自托管 LLM API 代理，支持多用户 API Key、提供方 Key 路由、失败重试、故障切换、异常 Key 自动停用和 Web 管理后台。
+Buzz 是一个自托管 LLM API 代理，支持多用户 API Key、提供方 Key 路由、失败重试、故障切换、异常 Key 自动停用和 Web 管理后台。
+
+现有 BuzzHive 部署请先按[迁移说明](docs/migration-buzz.zh-CN.md)备份和迁移，再升级；镜像、数据库名和环境变量均已改名。
 
 [English](README.md)
 
@@ -20,7 +22,7 @@ BuzzHive 是一个自托管 LLM API 代理，支持多用户 API Key、提供方
 ## 快速安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/teatak/buzzhive/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/teatak/buzz/main/install.sh | sh
 ```
 
 然后打开：
@@ -32,7 +34,7 @@ http://<服务器 IP>:9622/admin/
 可选参数：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/teatak/buzzhive/main/install.sh | env INSTALL_DIR=/opt/buzzhive PORT=9622 IMAGE=teatak/buzzhive:latest sh
+curl -fsSL https://raw.githubusercontent.com/teatak/buzz/main/install.sh | env INSTALL_DIR=/opt/buzz PORT=9622 IMAGE=teatak/buzz:latest sh
 ```
 
 再次运行同一条命令会刷新安装文件。安装脚本会保留 `.env`、`config.yaml`、`./pgdata` 和 `./redisdata`。
@@ -63,13 +65,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: buzzhive
-      POSTGRES_USER: buzzhive
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buzzhive-change-me}
+      POSTGRES_DB: buzz
+      POSTGRES_USER: buzz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buzz-change-me}
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U buzzhive -d buzzhive"]
+      test: ["CMD-SHELL", "pg_isready -U buzz -d buzz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -86,8 +88,8 @@ services:
       timeout: 5s
       retries: 5
 
-  buzzhive:
-    image: ${IMAGE:-teatak/buzzhive:latest}
+  buzz:
+    image: ${IMAGE:-teatak/buzz:latest}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -98,8 +100,8 @@ services:
       - "${PORT:-9622}:9622"
     environment:
       TZ: ${TZ:-Asia/Singapore}
-      BUZZHIVE_DATABASE_URL: postgres://buzzhive:${POSTGRES_PASSWORD:-buzzhive-change-me}@postgres:5432/buzzhive?sslmode=disable
-      BUZZHIVE_REDIS_ADDR: redis:6379
+      BUZZ_DATABASE_URL: postgres://buzz:${POSTGRES_PASSWORD:-buzz-change-me}@postgres:5432/buzz?sslmode=disable
+      BUZZ_REDIS_ADDR: redis:6379
     volumes:
       - ./config.yaml:/config/config.yaml:ro
 ```
@@ -141,7 +143,7 @@ POST http://127.0.0.1:9622/v1beta/models/{model}:generateContent
 POST http://127.0.0.1:9622/v1beta/models/{model}:streamGenerateContent
 ```
 
-BuzzHive 对外支持 OpenAI Chat Completions、OpenAI Responses、Anthropic Messages 和 Gemini GenerateContent 兼容接口。请求中的 `model` 字段或 Gemini URL 路径中的模型名填写用户可见的 BuzzHive 模型名，后端再路由到配置好的 provider route。
+Buzz 对外支持 OpenAI Chat Completions、OpenAI Responses、Anthropic Messages 和 Gemini GenerateContent 兼容接口。请求中的 `model` 字段或 Gemini URL 路径中的模型名填写用户可见的 Buzz 模型名，后端再路由到配置好的 provider route。
 
 ## API 协议
 

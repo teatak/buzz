@@ -1,6 +1,8 @@
-# BuzzHive
+# Buzz
 
-BuzzHive is a self-hosted LLM API proxy with multi-user API keys, provider key routing, failover, automatic bad-key disabling, and a web admin UI.
+Buzz is a self-hosted LLM API proxy with multi-user API keys, provider key routing, failover, automatic bad-key disabling, and a web admin UI.
+
+Existing BuzzHive installations must follow the [migration guide](docs/migration-buzz.zh-CN.md) before upgrading; the image, database name and environment variables have changed.
 
 [简体中文](README.zh-CN.md)
 
@@ -20,7 +22,7 @@ BuzzHive is a self-hosted LLM API proxy with multi-user API keys, provider key r
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/teatak/buzzhive/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/teatak/buzz/main/install.sh | sh
 ```
 
 Then open:
@@ -32,7 +34,7 @@ http://<server-ip>:9622/admin/
 Optional:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/teatak/buzzhive/main/install.sh | env INSTALL_DIR=/opt/buzzhive PORT=9622 IMAGE=teatak/buzzhive:latest sh
+curl -fsSL https://raw.githubusercontent.com/teatak/buzz/main/install.sh | env INSTALL_DIR=/opt/buzz PORT=9622 IMAGE=teatak/buzz:latest sh
 ```
 
 Run the same command again to refresh the installer files. The installer keeps `.env`, `config.yaml`, `./pgdata`, and `./redisdata`.
@@ -63,13 +65,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: buzzhive
-      POSTGRES_USER: buzzhive
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buzzhive-change-me}
+      POSTGRES_DB: buzz
+      POSTGRES_USER: buzz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buzz-change-me}
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U buzzhive -d buzzhive"]
+      test: ["CMD-SHELL", "pg_isready -U buzz -d buzz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -86,8 +88,8 @@ services:
       timeout: 5s
       retries: 5
 
-  buzzhive:
-    image: ${IMAGE:-teatak/buzzhive:latest}
+  buzz:
+    image: ${IMAGE:-teatak/buzz:latest}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -98,8 +100,8 @@ services:
       - "${PORT:-9622}:9622"
     environment:
       TZ: ${TZ:-Asia/Singapore}
-      BUZZHIVE_DATABASE_URL: postgres://buzzhive:${POSTGRES_PASSWORD:-buzzhive-change-me}@postgres:5432/buzzhive?sslmode=disable
-      BUZZHIVE_REDIS_ADDR: redis:6379
+      BUZZ_DATABASE_URL: postgres://buzz:${POSTGRES_PASSWORD:-buzz-change-me}@postgres:5432/buzz?sslmode=disable
+      BUZZ_REDIS_ADDR: redis:6379
     volumes:
       - ./config.yaml:/config/config.yaml:ro
 ```
@@ -141,7 +143,7 @@ POST http://127.0.0.1:9622/v1beta/models/{model}:generateContent
 POST http://127.0.0.1:9622/v1beta/models/{model}:streamGenerateContent
 ```
 
-BuzzHive exposes OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Gemini GenerateContent-compatible endpoints. Put the user-visible BuzzHive model name in the request model field or Gemini URL path; the backend routes it to the configured provider route.
+Buzz exposes OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Gemini GenerateContent-compatible endpoints. Put the user-visible Buzz model name in the request model field or Gemini URL path; the backend routes it to the configured provider route.
 
 ## API Protocols
 
@@ -165,7 +167,7 @@ Provider endpoints can be configured per provider protocol:
 | `anthropic` | `https://api.anthropic.com` |
 | `gemini` | `https://generativelanguage.googleapis.com` |
 
-Routing is passthrough-first: when the inbound protocol and provider protocol match, BuzzHive forwards the original request. When they differ, BuzzHive converts through its internal canonical protocol layer. Core text, image, basic tool call, usage, and text streaming paths are covered; advanced streamed tool deltas, hosted tools, file input, and reasoning/thinking content streaming are future enhancements.
+Routing is passthrough-first: when the inbound protocol and provider protocol match, Buzz forwards the original request. When they differ, Buzz converts through its internal canonical protocol layer. Core text, image, basic tool call, usage, and text streaming paths are covered; advanced streamed tool deltas, hosted tools, file input, and reasoning/thinking content streaming are future enhancements.
 
 On first launch, create the initial admin user in the admin UI. Then create user API keys in the UI and pass them as:
 

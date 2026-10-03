@@ -1,4 +1,4 @@
-package buzzhive
+package buzz
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/teatak/buzzhive/internal/protocol"
+	"github.com/teatak/buzz/internal/protocol"
 )
 
 func TestMimoReasoningAtProviderBoundary(t *testing.T) {
