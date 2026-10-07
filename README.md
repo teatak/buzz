@@ -2,8 +2,6 @@
 
 Buzz is a self-hosted LLM API proxy with multi-user API keys, provider key routing, failover, automatic bad-key disabling, and a web admin UI.
 
-Existing BuzzHive installations must follow the [migration guide](docs/migration-buzz.zh-CN.md) before upgrading; the image, database name and environment variables have changed.
-
 [简体中文](README.zh-CN.md)
 
 ## Features

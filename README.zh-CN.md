@@ -2,8 +2,6 @@
 
 Buzz 是一个自托管 LLM API 代理，支持多用户 API Key、提供方 Key 路由、失败重试、故障切换、异常 Key 自动停用和 Web 管理后台。
 
-现有 BuzzHive 部署请先按[迁移说明](docs/migration-buzz.zh-CN.md)备份和迁移，再升级；镜像、数据库名和环境变量均已改名。
-
 [English](README.md)
 
 ## 功能
