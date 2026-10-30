@@ -18,7 +18,8 @@ func TestShouldDisableAPIKey(t *testing.T) {
 		want         bool
 	}{
 		{name: "unauthorized", status: http.StatusUnauthorized, want: true},
-		{name: "forbidden", status: http.StatusForbidden, want: true},
+		{name: "forbidden model", status: http.StatusForbidden, errorMessage: "model access denied", want: false},
+		{name: "forbidden invalid key", status: http.StatusForbidden, errorCode: "API_KEY_INVALID", want: true},
 		{name: "invalid api key reason", status: http.StatusBadRequest, body: `{"error":{"status":"INVALID_ARGUMENT","message":"API key not valid. Please pass a valid API key.","details":[{"reason":"API_KEY_INVALID"}]}}`, want: true},
 		{name: "invalid api key message", status: http.StatusBadRequest, errorMessage: "API key not valid. Please pass a valid API key.", want: true},
 		{name: "ordinary bad request", status: http.StatusBadRequest, errorMessage: "invalid request body", want: false},
@@ -41,6 +42,7 @@ func TestShouldRetry(t *testing.T) {
 		status int
 		want   bool
 	}{
+		{name: "forbidden", status: http.StatusForbidden, want: true},
 		{name: "too many requests", status: http.StatusTooManyRequests, want: true},
 		{name: "not found", status: http.StatusNotFound, want: false},
 		{name: "bad request", status: http.StatusBadRequest, want: false},

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -438,8 +439,12 @@ func (s *Server) doProviderAttemptLoop(ctx context.Context, user AuthToken, mode
 		attempts++
 		resp, err := provider.Forward(ctx, req, key)
 		if err != nil {
-			chain = append(chain, fmt.Sprintf("%s(%s):%s", model, key.Name, err.Error()))
-			s.keyState.MarkError(cooldownModel, key, 0, err.Error())
+			lastResp = providerTransportErrorResponse(err, key)
+			lastErrBody = drain(lastResp.Body, 64*1024)
+			lastResp.Body.Close()
+			message := string(lastErrBody)
+			chain = append(chain, fmt.Sprintf("%s(%s):%s", model, key.Name, message))
+			s.keyState.MarkError(cooldownModel, key, lastResp.StatusCode, message)
 			s.refreshKeyStateStats()
 			continue
 		}
@@ -456,7 +461,7 @@ func (s *Server) doProviderAttemptLoop(ctx context.Context, user AuthToken, mode
 			} else if disableKey {
 				s.keyState.MarkError(cooldownModel, key, resp.StatusCode, string(lastErrBody))
 				s.disableAPIKey(key, resp.StatusCode, errorCode, errorMessage, lastErrBody)
-			} else {
+			} else if resp.StatusCode != http.StatusForbidden {
 				s.keyState.MarkError(cooldownModel, key, resp.StatusCode, string(lastErrBody))
 			}
 			s.refreshKeyStateStats()
@@ -492,7 +497,7 @@ func (s *Server) doProviderAttemptLoop(ctx context.Context, user AuthToken, mode
 	}
 
 	if lastResp == nil {
-		lastResp = errorResponse(http.StatusTooManyRequests, "")
+		lastResp = errorResponse(http.StatusServiceUnavailable, "no available upstream keys (keys unavailable or cooling down)")
 	} else {
 		lastResp.Body = io.NopCloser(bytes.NewReader(lastErrBody))
 	}
@@ -524,11 +529,14 @@ func (s *Server) doProviderTargetLoop(ctx context.Context, user AuthToken, model
 		req := buildReq(target)
 		req.MaxAttempts = remaining
 		result := s.doProviderAttemptLoop(ctx, user, model, target, req)
+		// An unavailable fallback must not hide the failure of an actual attempt.
+		if result.Attempts > 0 || combined.Response == nil {
+			combined = result
+		}
 		attempts += result.Attempts
 		chain = append(chain, result.Chain...)
 		result.Attempts = attempts
 		result.Chain = chain
-		combined = result
 		if result.OK {
 			if result.Response != nil && result.Response.StatusCode < 400 {
 				s.rememberRouteSession(ctx, user, model, result.Target)
@@ -540,11 +548,30 @@ func (s *Server) doProviderTargetLoop(ctx context.Context, user AuthToken, model
 		}
 	}
 	if combined.Response == nil {
-		combined.Response = errorResponse(http.StatusTooManyRequests, "")
+		combined.Response = errorResponse(http.StatusServiceUnavailable, "no available upstream routes")
 	}
 	combined.Attempts = attempts
 	combined.Chain = chain
 	return combined
+}
+
+func providerTransportErrorResponse(err error, key APIKey) *http.Response {
+	status := http.StatusBadGateway
+	var networkError net.Error
+	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &networkError) && networkError.Timeout()) {
+		status = http.StatusGatewayTimeout
+	}
+	// HTTP errors include the request URL, which may contain credentials in its
+	// query string. Keep the underlying connection/DNS/TLS cause instead.
+	var urlError *url.Error
+	if errors.As(err, &urlError) {
+		err = urlError.Err
+	}
+	message := err.Error()
+	if key.Key != "" {
+		message = strings.ReplaceAll(message, key.Key, "[redacted]")
+	}
+	return errorResponse(status, "upstream request failed: "+message)
 }
 
 func errorResponse(status int, body string) *http.Response {

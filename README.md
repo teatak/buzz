@@ -9,7 +9,8 @@ Buzz is a self-hosted LLM API proxy with multi-user API keys, provider key routi
 - Web admin UI for users, user API keys, providers, provider keys, models, and runtime status.
 - User-facing API keys sent with `Authorization: Bearer <api-key>`.
 - Provider key routing with retry, cooldown, failover, and request counting.
-- Automatically disables invalid/suspended upstream keys on 400 API key invalid, 401, and 403 responses.
+- Automatically disables upstream keys on 401 or explicit invalid-key errors in 400/403 responses. Other 403 responses trigger key/route failover without disabling the key or retaining error state; if all attempts fail, the error is returned to the client.
+- Connection failures return 502 with the underlying cause, timeouts return 504, and unavailable keys/routes return 503. Upstream 429 responses retain their status.
 - Postgres-backed users, providers, keys, and models; Redis-backed admin sessions and runtime state.
 
 ## Architecture Docs

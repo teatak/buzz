@@ -138,14 +138,14 @@ func setCORS(h http.Header) {
 }
 
 func shouldRetry(status int) bool {
-	return status == http.StatusTooManyRequests || status >= 500
+	return status == http.StatusForbidden || status == http.StatusTooManyRequests || status >= 500
 }
 
 func shouldDisableAPIKey(status int, errorCode, errorMessage string, body []byte) bool {
-	if status == http.StatusUnauthorized || status == http.StatusForbidden {
+	if status == http.StatusUnauthorized {
 		return true
 	}
-	if status != http.StatusBadRequest {
+	if status != http.StatusBadRequest && status != http.StatusForbidden {
 		return false
 	}
 	text := strings.ToUpper(errorCode + "\n" + errorMessage + "\n" + string(body))
